@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "datalens-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@datalens/web", "dev", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
+      "name": "datalens-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@datalens/web", "preview"],
+      "port": 4173
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "orders": [
+    { "order_id": "A-1001", "customer": "Ada Lovelace", "region": "APAC", "total": 249.99, "ordered_on": "2025-01-10", "fulfilled": true },
+    { "order_id": "A-1002", "customer": "Bob Chen", "region": "AMER", "total": 89.5, "ordered_on": "2025-01-12", "fulfilled": true },
+    { "order_id": "A-1003", "customer": "Cara Diaz", "region": "APAC", "total": null, "ordered_on": "2025-01-15", "fulfilled": false },
+    { "order_id": "A-1004", "customer": "Dan Okoro", "region": "EMEA", "total": 1240.0, "ordered_on": "2025-01-19", "fulfilled": true },
+    { "order_id": "A-1005", "customer": "Eve Sorensen", "region": "emea", "total": 312.75, "ordered_on": "2025-02-02", "fulfilled": false },
+    { "order_id": "A-1006", "customer": "Frank Mbeki", "region": "EMEA", "total": 58.2, "ordered_on": "2025-02-08", "fulfilled": true },
+    { "order_id": "A-1007", "customer": "Grace Hopper", "region": "AMER", "total": 2050.4, "ordered_on": "2025-02-14", "fulfilled": true },
+    { "order_id": "A-1008", "customer": "Hana Sato", "region": "APAC", "total": 176.0, "ordered_on": "2025-02-21", "fulfilled": false },
+    { "order_id": "A-1009", "customer": "Ivan Petrov", "region": "EMEA", "total": 431.15, "ordered_on": "2025-03-01", "fulfilled": true },
+    { "order_id": "A-1010", "customer": "Jane Wu", "region": "AMER", "total": 99.99, "ordered_on": "2025-03-06", "fulfilled": true },
+    { "order_id": "A-1011", "customer": "Kofi Mensah", "region": "EMEA", "total": 764.3, "ordered_on": "2025-03-11", "fulfilled": false },
+    { "order_id": "A-1012", "customer": "Lena Fischer", "region": "EMEA", "total": 205.6, "ordered_on": "2025-03-17", "fulfilled": true },
+    { "order_id": "A-1013", "customer": "Maya Nair", "region": "APAC", "total": 148.25, "ordered_on": "2025-03-23", "fulfilled": true },
+    { "order_id": "A-1014", "customer": "Omar Haddad", "region": "EMEA", "total": 3399.0, "ordered_on": "2025-04-02", "fulfilled": false },
+    { "order_id": "A-1015", "customer": "Priya Rao", "region": "APAC", "total": 67.4, "ordered_on": "2025-04-09", "fulfilled": true }
+  ]
+}

@@ -1,0 +1,21 @@
+employee_id,name,department,country,salary,start_date,is_remote,notes
+1001,Ada Lovelace,Engineering,Australia,142000,2021-01-10,true,"Lead, analytics platform"
+1002,Bob Chen,Engineering,Canada,128500,2020-03-03,false,
+1003,Cara Diaz,Design,Australia,,2022-02-18,true,Promoted 2024
+1004,Dan Okoro,Engineering,Nigeria,131000,2019-11-25,TRUE,"Owns ""ingest"" service"
+1005,Eve Sorensen,Marketing,Denmark,98000,2023-06-01,false,
+1006,Frank Mbeki,Design,South Africa,104500,2022-09-14,false,
+1007,Grace Hopper,Engineering,United States,155000,2018-04-30,true,
+1008,Hana Sato,Marketing,Japan,not available,2023-01-09,false,Data entry issue
+1009,Ivan Petrov,Support,Estonia,76000,2024-02-12,true,
+1010,Jane Wu,Support,canada,74500,2024-05-20,false,
+1011,Kofi Mensah,Engineering,Ghana,119000,2021-08-16,true,
+1012,Lena Fischer,Design,Germany,109500,2020-10-05,false,
+1013,Bob Chen,Engineering,Canada,128500,2020-03-03,false,
+1014,Maya Nair,Marketing,India,88000,2023-11-27,true,
+1015,Nils Berg,Support,Sweden,,2024-07-08,false,
+1016,Omar Haddad,Engineering,Egypt,124000,2022-04-19,true,
+1017,Priya Rao,Design,India,97000,2023-03-22,false,
+1018,Quinn Doyle,Support,Ireland,71000,2024-09-02,true,
+1019,Rosa Alvarez,Marketing,Spain,93500,2021-12-13,false,
+1020,Sam Ali,Engineering,Australia,137500,2019-07-01,true,

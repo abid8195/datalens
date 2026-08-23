@@ -1,0 +1,16 @@
+{
+  "name": "datalens-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.30.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "scripts": {
+    "dev": "pnpm --filter @datalens/web dev",
+    "build": "pnpm --filter @datalens/web build",
+    "preview": "pnpm --filter @datalens/web preview",
+    "test": "pnpm --filter @datalens/web test",
+    "typecheck": "pnpm --filter @datalens/web typecheck"
+  }
+}

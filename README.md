@@ -52,12 +52,14 @@ Open the local URL Vite prints (http://localhost:5173). Upload a CSV or JSON fil
 
 ### Sample data
 
-`samples/` contains two files for local testing. Both deliberately include quality problems so the Data Health report has something to find:
+The empty state has **Try a sample CSV** and **Try a sample JSON** buttons that load a bundled dataset in one click, so a first-time visitor can see the dashboard without having a file to hand.
+
+The files live in `web/public/samples/`, so they ship with the app and are precached by the service worker (which is why `csv` is in the Workbox `globPatterns`). Both deliberately include quality problems so the Data Health report has something to find:
 
 | File | Contents | Seeded issues |
 | --- | --- | --- |
-| `samples/employees.csv` | 20 rows, 8 columns, all five inferred types | Missing salaries, `not available` in a number column, `canada`/`Canada` case mismatch, quoted fields with commas and escaped quotes |
-| `samples/orders.json` | 15 records nested under an `orders` key | A `null` total, `emea`/`EMEA` case mismatch |
+| `web/public/samples/employees.csv` | 20 rows, 8 columns, all five inferred types | Missing salaries, `not available` in a number column, `canada`/`Canada` case mismatch, quoted fields with commas and escaped quotes |
+| `web/public/samples/orders.json` | 15 records nested under an `orders` key | A `null` total, `emea`/`EMEA` case mismatch |
 
 ## Verification commands
 

@@ -70,12 +70,30 @@ export default function App(): JSX.Element {
     setActiveView('overview');
   };
 
+  const loadSample = async (fileName: string): Promise<void> => {
+    setError('');
+    setLargeFileNotice('');
+    setProcessing(true);
+    let file: File;
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}samples/${fileName}`);
+      if (!response.ok) throw new Error('unavailable');
+      file = new File([await response.blob()], fileName);
+    } catch {
+      setProcessing(false);
+      setError('That sample could not be loaded. Check your connection, or choose a file from your device.');
+      return;
+    }
+    setProcessing(false);
+    await handleFile(file);
+  };
+
   const clearDataset = (): void => {
     setDataset(undefined); setProfile(undefined); setSearch(''); setFilters([]); setSort(undefined); setSelectedColumn(''); setError(''); setLargeFileNotice('');
   };
 
   const content = (): JSX.Element => {
-    if (!dataset || !profile) return <EmptyState onFile={handleFile} processing={processing} error={error} largeFileNotice={largeFileNotice} />;
+    if (!dataset || !profile) return <EmptyState onFile={handleFile} onSample={loadSample} processing={processing} error={error} largeFileNotice={largeFileNotice} />;
     if (activeView === 'dataset') return <DataExplorer dataset={dataset} profiles={profile.columns} rows={displayedRows} search={search} onSearch={setSearch} filters={filters} onFiltersChange={setFilters} sort={sort} onSortChange={setSort} preferences={preferences} onPreferencesChange={setPreferences} onExport={() => downloadCsv(dataset.columns, displayedRows, dataset.fileName)} />;
     if (activeView === 'columns') return <ColumnInspector dataset={dataset} profile={profile} selectedColumn={selectedColumn} onSelectColumn={setSelectedColumn} />;
     if (activeView === 'health') return <DataHealth dataset={dataset} profile={profile} onSelectColumn={inspectColumn} />;
@@ -94,10 +112,10 @@ function Brand({ compact = false }: { compact?: boolean }): JSX.Element {
   return <div className={compact ? 'brand brand--compact' : 'brand'}><span className="brand__mark"><Icon name="spark" size={20} /></span><span><strong>DataLens</strong>{!compact ? <small>Your instant data health check.</small> : null}</span></div>;
 }
 
-interface EmptyStateProps { onFile: (file: File) => void; processing: boolean; error: string; largeFileNotice: string; }
+interface EmptyStateProps { onFile: (file: File) => void; onSample: (fileName: string) => void; processing: boolean; error: string; largeFileNotice: string; }
 
-function EmptyState({ onFile, processing, error, largeFileNotice }: EmptyStateProps): JSX.Element {
-  return <section className="empty-state"><div className="empty-state__intro"><p className="eyebrow">Private data utility</p><h1>Your instant<br />data health check.</h1><p>Understand CSV and JSON files privately, right in your browser.</p></div><div className="empty-state__upload"><UploadPanel onFile={onFile} busy={processing} />{largeFileNotice ? <p className="notice notice--info"><Icon name="info" size={16} /> {largeFileNotice}</p> : null}{error ? <p className="notice notice--error" role="alert"><Icon name="warning" size={16} /> {error}</p> : null}<div className="privacy-banner"><Icon name="check" size={18} /><span><strong>Your data stays on this device.</strong><small>Nothing is uploaded. DataLens uses no accounts, tracking, or analytics.</small></span></div></div><div className="empty-state__features"><span><Icon name="health" /> Find potential issues</span><span><Icon name="sliders" /> Filter and inspect</span><span><Icon name="download" /> Export your view</span></div><StoreLink /></section>;
+function EmptyState({ onFile, onSample, processing, error, largeFileNotice }: EmptyStateProps): JSX.Element {
+  return <section className="empty-state"><div className="empty-state__intro"><p className="eyebrow">Private data utility</p><h1>Your instant<br />data health check.</h1><p>Understand CSV and JSON files privately, right in your browser.</p></div><div className="empty-state__upload"><UploadPanel onFile={onFile} busy={processing} /><div className="sample-row"><span>No file handy?</span><button type="button" className="button button--secondary" disabled={processing} onClick={() => onSample('employees.csv')}><Icon name="table" size={15} /> Try a sample CSV</button><button type="button" className="button button--secondary" disabled={processing} onClick={() => onSample('orders.json')}><Icon name="file" size={15} /> Try a sample JSON</button></div>{largeFileNotice ? <p className="notice notice--info"><Icon name="info" size={16} /> {largeFileNotice}</p> : null}{error ? <p className="notice notice--error" role="alert"><Icon name="warning" size={16} /> {error}</p> : null}<div className="privacy-banner"><Icon name="check" size={18} /><span><strong>Your data stays on this device.</strong><small>Nothing is uploaded. DataLens uses no accounts, tracking, or analytics.</small></span></div></div><div className="empty-state__features"><span><Icon name="health" /> Find potential issues</span><span><Icon name="sliders" /> Filter and inspect</span><span><Icon name="download" /> Export your view</span></div><StoreLink /></section>;
 }
 
 function StoreLink(): JSX.Element {

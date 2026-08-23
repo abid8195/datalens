@@ -5,6 +5,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
+  "min_viewport_width": 320,
   "background_color": "#fffaf5",
   "theme_color": "#e66a3f",
   "icons": [

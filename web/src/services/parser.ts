@@ -1,4 +1,5 @@
 import type { DataRow, FileType, ImportResult } from '../types';
+import { readXlsxRecords } from './xlsx';
 
 const EMPTY_VALUE = '';
 
@@ -20,6 +21,50 @@ const uniqueColumnNames = (names: string[]): string[] => {
     used.set(base, occurrence + 1);
     return occurrence === 0 ? base : `${base} (${occurrence + 1})`;
   });
+};
+
+interface RecordDatasetOptions {
+  fileName: string;
+  fileType: FileType;
+  fileSize: number;
+  emptyMessage: string;
+  noColumnsMessage: string;
+  warnings?: string[];
+}
+
+/**
+ * Turns a header-plus-rows grid into a Dataset. Shared by the CSV and Excel
+ * paths so both handle ragged rows, duplicate headers, and blanks identically.
+ */
+const datasetFromRecords = (records: string[][], options: RecordDatasetOptions): ImportResult => {
+  if (records.length < 2) return { error: options.emptyMessage };
+
+  const columns = uniqueColumnNames(records[0]);
+  if (columns.length === 0) return { error: options.noColumnsMessage };
+
+  const warnings: string[] = [...(options.warnings ?? [])];
+  const rows: DataRow[] = records.slice(1).map((record, rowIndex) => {
+    if (record.length !== columns.length) {
+      warnings.push(`Row ${rowIndex + 2} has ${record.length} values; the header has ${columns.length}. Missing values were left blank and extra values ignored.`);
+    }
+    const values: Record<string, string> = {};
+    columns.forEach((column, columnIndex) => {
+      values[column] = record[columnIndex] ?? EMPTY_VALUE;
+    });
+    return { id: rowIndex, values };
+  });
+
+  return {
+    dataset: {
+      fileName: options.fileName,
+      fileType: options.fileType,
+      fileSize: options.fileSize,
+      importedAt: new Date().toISOString(),
+      columns,
+      rows,
+      warnings: [...new Set(warnings)].slice(0, 5),
+    },
+  };
 };
 
 export interface CsvParseResult {
@@ -64,39 +109,57 @@ export const parseCsvRecords = (input: string): CsvParseResult => {
 };
 
 export const parseCsv = (input: string, fileName: string, fileSize: number): ImportResult => {
-  const parsed = parseCsvRecords(input.replace(/^\uFEFF/, ''));
-  if (parsed.records.length < 2) {
-    return { error: 'This CSV needs a header row and at least one data row.' };
-  }
+  const parsed = parseCsvRecords(input.replace(/^\ufeff/, ''));
+  const warnings = parsed.unterminatedQuote
+    ? ['A quoted field appears to be unterminated. Data was read as safely as possible.']
+    : [];
 
-  const columns = uniqueColumnNames(parsed.records[0]);
-  if (columns.length === 0) return { error: 'This CSV does not contain usable columns.' };
-
-  const warnings: string[] = [];
-  if (parsed.unterminatedQuote) warnings.push('A quoted field appears to be unterminated. Data was read as safely as possible.');
-
-  const rows: DataRow[] = parsed.records.slice(1).map((record, rowIndex) => {
-    if (record.length !== columns.length) {
-      warnings.push(`Row ${rowIndex + 2} has ${record.length} values; the header has ${columns.length}. Missing values were left blank and extra values ignored.`);
-    }
-    const values: Record<string, string> = {};
-    columns.forEach((column, columnIndex) => {
-      values[column] = record[columnIndex] ?? EMPTY_VALUE;
-    });
-    return { id: rowIndex, values };
+  return datasetFromRecords(parsed.records, {
+    fileName,
+    fileType: 'csv',
+    fileSize,
+    emptyMessage: 'This CSV needs a header row and at least one data row.',
+    noColumnsMessage: 'This CSV does not contain usable columns.',
+    warnings,
   });
+};
 
-  return {
-    dataset: {
-      fileName,
-      fileType: 'csv',
-      fileSize,
-      importedAt: new Date().toISOString(),
-      columns,
-      rows,
-      warnings: [...new Set(warnings)].slice(0, 5),
-    },
-  };
+/**
+ * Normalises a sheet grid: drops fully blank rows, trims trailing blank header
+ * cells, and pads short rows out to the header width. Excel omits trailing
+ * empty cells entirely, which is ordinary blankness rather than a ragged row,
+ * so padding here keeps those cells from being reported as import warnings.
+ */
+const trimSheetGrid = (records: string[][]): string[][] => {
+  const populated = records.filter((record) => record.some((value) => value.trim() !== ''));
+  if (populated.length === 0) return populated;
+
+  const header = [...populated[0]];
+  while (header.length > 0 && header[header.length - 1].trim() === '') header.pop();
+
+  const body = populated.slice(1).map((record) => {
+    if (record.length >= header.length) return record;
+    return [...record, ...Array<string>(header.length - record.length).fill(EMPTY_VALUE)];
+  });
+  return [header, ...body];
+};
+
+export const parseXlsx = async (buffer: ArrayBuffer, fileName: string, fileSize: number): Promise<ImportResult> => {
+  const sheet = await readXlsxRecords(buffer);
+  if (!sheet.records) return { error: sheet.error ?? 'This Excel file could not be read.' };
+
+  const warnings = sheet.sheetCount !== undefined && sheet.sheetCount > 1
+    ? [`This workbook has ${sheet.sheetCount} sheets. Only the first${sheet.sheetName ? ` ("${sheet.sheetName}")` : ''} was imported.`]
+    : [];
+
+  return datasetFromRecords(trimSheetGrid(sheet.records), {
+    fileName,
+    fileType: 'xlsx',
+    fileSize,
+    emptyMessage: 'This sheet needs a header row and at least one data row.',
+    noColumnsMessage: 'This worksheet does not contain usable columns.',
+    warnings,
+  });
 };
 
 const findTabularRecords = (value: unknown): Record<string, unknown>[] | undefined => {
@@ -147,9 +210,22 @@ export const parseJson = (input: string, fileName: string, fileSize: number): Im
 
 export const parseImportedFile = async (file: File): Promise<ImportResult> => {
   const suffix = file.name.split('.').pop()?.toLowerCase();
-  const fileType: FileType | undefined = suffix === 'csv' || suffix === 'json' ? suffix : undefined;
-  if (!fileType) return { error: 'DataLens supports CSV and JSON files only.' };
-  if (file.size === 0) return { error: 'This file is empty. Choose a CSV or JSON file with data.' };
+  if (suffix === 'xls') {
+    return { error: 'DataLens reads .xlsx workbooks. Open this older .xls file in Excel and re-save it as .xlsx.' };
+  }
+
+  const fileType: FileType | undefined =
+    suffix === 'csv' || suffix === 'json' || suffix === 'xlsx' ? suffix : undefined;
+  if (!fileType) return { error: 'DataLens supports CSV, JSON, and Excel (.xlsx) files only.' };
+  if (file.size === 0) return { error: 'This file is empty. Choose a CSV, JSON, or Excel file with data.' };
+
+  if (fileType === 'xlsx') {
+    try {
+      return await parseXlsx(await file.arrayBuffer(), file.name, file.size);
+    } catch {
+      return { error: 'This file could not be read from your device.' };
+    }
+  }
 
   let content: string;
   try {

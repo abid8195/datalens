@@ -1,7 +1,7 @@
 {
   "name": "DataLens — Your instant data health check",
   "short_name": "DataLens",
-  "description": "Private, local-first CSV and JSON data exploration.",
+  "description": "Private, local-first CSV, Excel, and JSON data exploration.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -27,11 +27,11 @@ export function UploadPanel({ onFile, compact = false, busy = false }: UploadPan
   const onInput = (event: ChangeEvent<HTMLInputElement>): void => choose(event.target.files);
   return (
     <div className={`dropzone ${compact ? 'dropzone--compact' : ''} ${dragging ? 'dropzone--active' : ''}`} onDragOver={onDragOver} onDragLeave={() => setDragging(false)} onDrop={onDrop}>
-      <input ref={inputRef} type="file" accept=".csv,application/json,.json,text/csv" onChange={onInput} className="sr-only" />
+      <input ref={inputRef} type="file" accept=".csv,.json,.xlsx,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={onInput} className="sr-only" />
       <div className="dropzone__mark"><Icon name="upload" size={compact ? 19 : 26} /></div>
       <div>
         <strong>{busy ? 'Analysing your file…' : compact ? 'Analyse another file' : 'Drop your file here'}</strong>
-        {!compact ? <span>CSV or JSON · processed only in this browser</span> : null}
+        {!compact ? <span>CSV, Excel, or JSON · processed only in this browser</span> : null}
       </div>
       <button className="button button--secondary" type="button" onClick={(event) => { event.stopPropagation(); inputRef.current?.click(); }} disabled={busy}>
         Browse files

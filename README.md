@@ -1,10 +1,11 @@
 # DataLens
 
-DataLens is a privacy-first, local-first data health checker for CSV and JSON files. Import a file to inspect its shape, inferred column types, basic statistics, likely quality issues, distributions, filters, and a locally generated CSV export.
+DataLens is a privacy-first, local-first data health checker for CSV, Excel, and JSON files. Import a file to inspect its shape, inferred column types, basic statistics, likely quality issues, distributions, filters, and a locally generated CSV export.
 
 ## Key features
 
 - CSV parsing with quoted fields, embedded commas, empty values, and import warnings for uneven rows
+- Excel (.xlsx) reading with shared strings, date-formatted cells, booleans, and sparse cells
 - JSON parsing for arrays of objects and common wrapper-object structures
 - Local column profiling: inferred types, missingness, unique values, number statistics, date ranges, boolean counts, and common values
 - A transparent Data Health score that reports duplicate rows and potential quality issues
@@ -37,7 +38,7 @@ File → parser → normalized Dataset → profiler → Data Health → React da
 - Tailwind CSS 4.1, plus application-specific CSS tokens
 - pnpm 10 workspace
 
-No charting, state-management, parsing, or UI framework is used.
+No charting, state-management, parsing, spreadsheet, or UI framework is used. `.xlsx` support is hand-written: `services/zip.ts` reads the zip central directory and inflates entries with the platform's own `DecompressionStream('deflate-raw')`, and `services/xlsx.ts` reads the resulting XML parts. Excel support costs roughly 2.4 KB gzipped.
 
 ## Local development
 
@@ -48,17 +49,18 @@ pnpm install
 pnpm dev
 ```
 
-Open the local URL Vite prints (http://localhost:5173). Upload a CSV or JSON file; the data remains in your browser.
+Open the local URL Vite prints (http://localhost:5173). Upload a CSV, Excel, or JSON file; the data remains in your browser.
 
 ### Sample data
 
-The empty state has **Try a sample CSV** and **Try a sample JSON** buttons that load a bundled dataset in one click, so a first-time visitor can see the dashboard without having a file to hand.
+The empty state has **Sample CSV**, **Sample Excel**, and **Sample JSON** buttons that load a bundled dataset in one click, so a first-time visitor can see the dashboard without having a file to hand.
 
-The files live in `web/public/samples/`, so they ship with the app and are precached by the service worker (which is why `csv` is in the Workbox `globPatterns`). Both deliberately include quality problems so the Data Health report has something to find:
+The files live in `web/public/samples/`, so they ship with the app and are precached by the service worker (which is why `csv` and `xlsx` are in the Workbox `globPatterns`). All three deliberately include quality problems so the Data Health report has something to find:
 
 | File | Contents | Seeded issues |
 | --- | --- | --- |
 | `web/public/samples/employees.csv` | 20 rows, 8 columns, all five inferred types | Missing salaries, `not available` in a number column, `canada`/`Canada` case mismatch, quoted fields with commas and escaped quotes |
+| `web/public/samples/pipeline.xlsx` | 5 rows across 2 worksheets, custom date format | A duplicate row, `emea`/`EMEA` case mismatch, omitted trailing cells, a second sheet that is not imported |
 | `web/public/samples/orders.json` | 15 records nested under an `orders` key | A `null` total, `emea`/`EMEA` case mismatch |
 
 ## Verification commands
@@ -92,3 +94,4 @@ The repository intentionally does not include Cloudflare deployment configuratio
 - Very large files are parsed on the main browser thread; DataLens warns for files larger than 10 MB but does not claim unlimited input size.
 - Date inference intentionally uses conservative ISO-style date patterns to avoid presenting ambiguous text as a date.
 - The health score is a deterministic heuristic and should guide review, not certify data correctness.
+- Excel import reads only the first worksheet, and warns when a workbook contains more than one. Formulas contribute their last value cached by Excel rather than a recomputed one, and time-only cells stay numeric because only formats containing a day or year token are treated as dates. The older binary `.xls` format is not supported; DataLens asks for it to be re-saved as `.xlsx`.

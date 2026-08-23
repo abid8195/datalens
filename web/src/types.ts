@@ -1,4 +1,4 @@
-export type FileType = 'csv' | 'json';
+export type FileType = 'csv' | 'json' | 'xlsx';
 export type ColumnType = 'text' | 'number' | 'boolean' | 'date' | 'category';
 export type ViewName = 'overview' | 'dataset' | 'columns' | 'health';
 export type SortDirection = 'asc' | 'desc';
